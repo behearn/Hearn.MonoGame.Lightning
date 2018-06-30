@@ -12,41 +12,54 @@ namespace Hearn.MonoGame.Lightning
     {
 
         private List<LightningBolt> _bolts;
-        private int _elapsed;
+
+        private int _intervalElapsed;
         private int _interval;
 
-        private int _duration;
+        private int _stormElapsed;
+        private int _stormDuration;
+
+        private int _boltDuration;
+
         private Color _tint;
 
-        public LightningStorm(Vector2 source, Vector2 dest, int duration, Color tint)
+        public LightningStorm(Vector2 source, Vector2 dest, int stormDuration, int boltDuration, Color tint)
         {
             _bolts = new List<LightningBolt>();
 
             Source = source;
             Dest = dest;
-            _duration = duration;
+
+            _stormDuration = stormDuration;
+            _boltDuration = boltDuration;
             _tint = tint;
 
             NumberOfBolts = 3;
         }
 
-        private Vector2 Source { get; set; }
-        private Vector2 Dest { get; set; }
+        public Vector2 Source { get; set; }
+        public Vector2 Dest { get; set; }
         public int NumberOfBolts { get; set; }
+
+        public bool IsComplete { get => _stormElapsed >= _stormDuration && !_bolts.Any(); }
 
         public void Update(GameTime gameTime)
         {
             _bolts.RemoveAll(b => b.IsComplete);
 
-            _interval = (int)(_duration / NumberOfBolts);
-            _elapsed += gameTime.ElapsedGameTime.Milliseconds;            
-            if (_elapsed >= _interval)
+            _stormElapsed += gameTime.ElapsedGameTime.Milliseconds;
+            if (_stormElapsed < _stormDuration)
             {
-                _elapsed -= _interval;
-                if (_bolts.Count <= NumberOfBolts)
+                _interval = (int)(_boltDuration / NumberOfBolts);
+                _intervalElapsed += gameTime.ElapsedGameTime.Milliseconds;
+                if (_intervalElapsed >= _interval)
                 {
-                    var bolt = new LightningBolt(Source, Dest, _duration, _tint);
-                    _bolts.Add(bolt);
+                    _intervalElapsed -= _interval;
+                    if (_bolts.Count <= NumberOfBolts)
+                    {
+                        var bolt = new LightningBolt(Source, Dest, _boltDuration, _tint);
+                        _bolts.Add(bolt);
+                    }
                 }
             }
 
@@ -54,6 +67,7 @@ namespace Hearn.MonoGame.Lightning
             {
                 bolt.Update(gameTime);
             }
+            
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -62,6 +76,11 @@ namespace Hearn.MonoGame.Lightning
             {
                 bolt.Draw(spriteBatch);
             }
+        }
+
+        public void Restart()
+        {
+            _stormElapsed = 0;
         }
 
     }

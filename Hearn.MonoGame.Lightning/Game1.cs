@@ -11,7 +11,10 @@ namespace Hearn.MonoGame.Lightning
     {
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
-        
+
+        private MouseState _mouseState;
+        private MouseState _lastMouseState;
+
         private KeyboardState _keyboardState;
 
         private LightningStorm _storm;
@@ -33,7 +36,10 @@ namespace Hearn.MonoGame.Lightning
 
             var electricBlue = new Color(44, 117, 255);
 
-            _storm = new LightningStorm(source, dest, 500, electricBlue);
+            const int StormDuration = 2000;
+            const int BoltDuration = 500;
+            
+            _storm = new LightningStorm(source, dest, StormDuration, BoltDuration, electricBlue);
             _storm.NumberOfBolts = 4;
         }
         
@@ -43,6 +49,11 @@ namespace Hearn.MonoGame.Lightning
 
             Art.LightningSegment = Content.Load<Texture2D>("line");
             Art.HalfCircle = Content.Load<Texture2D>("halfcircle");            
+        }
+
+        private bool MouseWasClicked()
+        {
+            return _mouseState.LeftButton == ButtonState.Pressed && _lastMouseState.LeftButton == ButtonState.Released;
         }
 
         protected override void Update(GameTime gameTime)
@@ -59,9 +70,22 @@ namespace Hearn.MonoGame.Lightning
             {                
                 _graphics.ToggleFullScreen();
             }
-            
-            _storm.Update(gameTime);
 
+            _lastMouseState = _mouseState;
+            _mouseState = Mouse.GetState();
+
+            if (MouseWasClicked())
+            {
+                _storm.Source = _storm.Dest;
+                _storm.Dest = _mouseState.Position.ToVector2();
+                _storm.Restart();
+            }
+
+            if (!_storm.IsComplete)
+            {
+                _storm.Update(gameTime);
+            }
+            
         }
 
         protected override void Draw(GameTime gameTime)
