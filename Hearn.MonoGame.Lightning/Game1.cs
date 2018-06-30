@@ -9,72 +9,70 @@ namespace Hearn.MonoGame.Lightning
     /// </summary>
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        GraphicsDeviceManager _graphics;
+        SpriteBatch _spriteBatch;
+        
+        private KeyboardState _keyboardState;
 
-        private MouseState mouseState;
-        private MouseState lastMouseState;
-
-        private LightningBolt bolt;
+        private LightningStorm _storm;
 
         public Game1()
         {
-            graphics = new GraphicsDeviceManager(this);
+            _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
-
-
+        
         protected override void Initialize()
         {
             base.Initialize();
 
             IsMouseVisible = true;
+            
+            var source = new Vector2(10, 10);
+            var dest = new Vector2(GraphicsDevice.Viewport.Width - 10, GraphicsDevice.Viewport.Height - 10);
 
+            var electricBlue = new Color(44, 117, 255);
+
+            _storm = new LightningStorm(source, dest, 500, electricBlue);
+            _storm.NumberOfBolts = 4;
         }
         
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             Art.LightningSegment = Content.Load<Texture2D>("line");
-            Art.HalfCircle = Content.Load<Texture2D>("halfcircle");
-            
+            Art.HalfCircle = Content.Load<Texture2D>("halfcircle");            
         }
-
-        protected override void UnloadContent()
-        {
-        } 
 
         protected override void Update(GameTime gameTime)
         {
-            lastMouseState = mouseState;
-            mouseState = Mouse.GetState();
 
-            var screenSize = new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-            var mousePosition = new Vector2(mouseState.X, mouseState.Y);
+            _keyboardState = Keyboard.GetState();
+            if (_keyboardState.IsKeyDown(Keys.Escape))
+            {
+                this.Exit();
+            }
 
-            if (MouseWasClicked())
-                bolt = new LightningBolt(screenSize / 2, mousePosition, new Color(44, 117, 255));
+            var keys = _keyboardState.GetPressedKeys();
+            if (keys.Length !=0 && keys[0] == Keys.F12)
+            {                
+                _graphics.ToggleFullScreen();
+            }
+            
+            _storm.Update(gameTime);
 
-            if (bolt != null)
-                bolt.Update();
-        }
-
-        private bool MouseWasClicked()
-        {
-            return mouseState.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton == ButtonState.Released;
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin(SpriteSortMode.Texture, BlendState.Additive);
+            _spriteBatch.Begin(SpriteSortMode.Texture, BlendState.Additive);
 
-            if (bolt != null)
-                bolt.Draw(spriteBatch);
+            _storm.Draw(_spriteBatch);
 
-            spriteBatch.End();
+            _spriteBatch.End();
         }
     }
 }

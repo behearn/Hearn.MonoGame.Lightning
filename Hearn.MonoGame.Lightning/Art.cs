@@ -11,8 +11,7 @@ namespace Hearn.MonoGame.Lightning
     {
 
         public static Texture2D LightningSegment { get; set; }
-
-
+        
         public static Texture2D HalfCircle { get; set; }
 
     }
